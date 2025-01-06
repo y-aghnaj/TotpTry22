@@ -2,12 +2,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>JSP - Hello World</title>
+    <title>Login - 2FA System</title>
 </head>
 <body>
-<h1><%= "Hello World!" %>
-</h1>
-<br/>
-<a href="hello-servlet">Hello Servlet</a>
+<h1>Login</h1>
+<form action="${pageContext.request.contextPath}/login" method="post">
+    <label for="username">Username:</label>
+    <input type="text" name="username" id="username" required>
+    <br/>
+    <label for="password">Password:</label>
+    <input type="password" name="password" id="password" required>
+    <br/>
+    <button type="submit">Login</button>
+</form>
 </body>
 </html>
