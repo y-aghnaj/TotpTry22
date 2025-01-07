@@ -1,38 +1,44 @@
 package ma.um5.ensias.totptry2;
 
-import java.io.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import java.io.IOException;
 
-@WebServlet(name = "verifyServlet", value = "/verify")
+@WebServlet(name = "VerifyServlet", value = "/verify")
 public class VerifyServlet extends HttpServlet {
 
-    private static final String SECRET_KEY = "JBSWY3DPEHPK3PXP"; // Base32 secret key for TOTP
-    private static final long TIME_STEP_SECONDS = 30; // TOTP time step interval
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get the entered OTP from the form
+        String enteredOtp = request.getParameter("otp");
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String userOtp = request.getParameter("otp");
+        // Get session data
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("username");
+        String generatedOtp = (String) session.getAttribute("otp"); // OTP stored during login
 
-        // Generate the expected TOTP for the current time interval
-        String generatedOtp = TOTPGenerator.generateTOTP(SECRET_KEY, TIME_STEP_SECONDS);
-        System.out.println("YO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nYO\nGenerated Otp = " + generatedOtp);
-        if (generatedOtp.equals(userOtp)) {
-            // OTP is correct, user is authenticated
-            response.setContentType("text/html");
-            PrintWriter out = response.getWriter();
-            out.println("<html><body>");
-            out.println("<h1>Authentication Successful!</h1>");
-            out.println("<p>Welcome to the secure area.</p>");
-            out.println("</body></html>");
+        if (username == null || generatedOtp == null) {
+            // Session invalid or expired
+            response.sendRedirect("index.jsp?error=Session expired. Please login again.");
+            return;
+        }
+
+        // Verify OTP
+        if (enteredOtp.equals(generatedOtp)) {
+            System.out.println("OTP verified successfully for user: " + username);
+
+            // Redirect to a success page
+            response.sendRedirect("success.jsp");
         } else {
-            // OTP is incorrect
-            response.setContentType("text/html");
-            PrintWriter out = response.getWriter();
-            out.println("<html><body>");
-            out.println("<h1>Invalid OTP</h1>");
-            out.println("<a href='verify.jsp'>Try Again</a>");
-            out.println("</body></html>");
+            System.out.println("OTP verification failed for user: " + username);
+
+            // Redirect back to the verification page with error
+            response.sendRedirect("verify.jsp?error=Invalid OTP. Please try again.");
         }
     }
 }
